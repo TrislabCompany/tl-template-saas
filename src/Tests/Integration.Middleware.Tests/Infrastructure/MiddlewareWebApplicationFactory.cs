@@ -22,7 +22,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Testcontainers.Minio;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using Testcontainers.PostgreSql;
 
 namespace Integration.Middleware.Tests.Infrastructure;
@@ -47,7 +48,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
     private const string MinioBucket = "fsh-middleware-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17.11-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b")
         .WithDatabase("fsh_middleware_tests")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")
@@ -55,9 +56,12 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         .WithCleanUp(true)
         .Build();
 
-    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest")
-        .WithUsername(MinioAccessKey)
-        .WithPassword(MinioSecretKey)
+    // The S3-compatible storage a stamp runs, pinned like docker-compose.yml's.
+    private readonly IContainer _minio = new ContainerBuilder("rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b")
+        .WithEnvironment("RUSTFS_ACCESS_KEY", MinioAccessKey)
+        .WithEnvironment("RUSTFS_SECRET_KEY", MinioSecretKey)
+        .WithPortBinding(9000, true)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(9000))
         .WithAutoRemove(true)
         .WithCleanUp(true)
         .Build();
@@ -105,13 +109,13 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
     }
 
     /// <summary>The MinIO endpoint URL exposed to the host configuration; useful for tests that need to PUT bytes directly.</summary>
-    public string MinioServiceUrl => _minio.GetConnectionString();
+    public string MinioServiceUrl => $"http://{_minio.Hostname}:{_minio.GetMappedPublicPort(9000)}";
 
     private async Task CreateMinioBucketAsync()
     {
         var config = new AmazonS3Config
         {
-            ServiceURL = _minio.GetConnectionString(),
+            ServiceURL = MinioServiceUrl,
             ForcePathStyle = true,
             UseHttp = true,
             AuthenticationRegion = "us-east-1"
@@ -182,7 +186,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
 
                 ["Storage:Provider"] = "s3",
                 ["Storage:S3:Bucket"] = MinioBucket,
-                ["Storage:S3:ServiceUrl"] = _minio.GetConnectionString(),
+                ["Storage:S3:ServiceUrl"] = MinioServiceUrl,
                 ["Storage:S3:AccessKey"] = MinioAccessKey,
                 ["Storage:S3:SecretKey"] = MinioSecretKey,
                 ["Storage:S3:ForcePathStyle"] = "true",

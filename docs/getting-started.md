@@ -89,7 +89,7 @@ This is the command `ci / ci` runs. Docker must run: the integration tests start
 | --- | --- | --- |
 | Architecture tests | `src/Tests/Architecture.Tests` | The module boundaries and conventions ([modules.md](modules.md)) |
 | Unit tests | `src/Tests/<Module>.Tests`, `Framework.Tests`, `Caching.Tests`, `Generic.Tests` | Each module and building block without a database |
-| Integration tests | `src/Tests/Integration.Tests`, `Integration.Middleware.Tests` | The API's endpoints against a real Postgres 17 and S3-compatible storage, the platform's probes, and the mapping of the platform's settings |
+| Integration tests | `src/Tests/Integration.Tests`, `Integration.Middleware.Tests` | The API's endpoints against a real Postgres 17 and the S3-compatible storage of a stamp, the platform's probes, and the mapping of the platform's settings |
 
 `ci / ci` also builds the four images, scans them with Trivy and checks `platform.yaml`. It doesn't build the front ends on their own: their images do that. Before a PR that changes a front end, build it:
 
