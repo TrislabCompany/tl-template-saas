@@ -16,7 +16,7 @@ public sealed class HealthProbesTests
     public async Task Liveness_Should_Return200_WithoutDependencyChecks()
     {
         using var client = _factory.CreateClient();
-        var response = await client.GetAsync("/health/live");
+        var response = await client.GetAsync("/api/health/live");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = await response.Content.ReadAsStringAsync();
@@ -27,7 +27,7 @@ public sealed class HealthProbesTests
     public async Task Readiness_Should_Return200_When_DependenciesHealthy()
     {
         using var client = _factory.CreateClient();
-        var response = await client.GetAsync("/health/ready");
+        var response = await client.GetAsync("/api/health/ready");
 
         // All registered health checks should pass in the integration test setup
         // (PostgreSQL testcontainer is up, Hangfire in-memory storage is running).
@@ -39,7 +39,7 @@ public sealed class HealthProbesTests
     {
         // Probes run anonymously for orchestrators (k8s, ECS) — they can't hold tokens.
         using var client = _factory.CreateClient();
-        var response = await client.GetAsync("/health/live");
+        var response = await client.GetAsync("/api/health/live");
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

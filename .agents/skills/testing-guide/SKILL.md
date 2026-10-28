@@ -102,5 +102,5 @@ for SignalR. All detailed in `.agents/rules/integration-testing.md`.
 ```bash
 dotnet test src/Tests/{X}.Tests
 dotnet test src/Tests/Architecture.Tests
-dotnet test src/FSH.Starter.slnx --collect "XPlat Code Coverage" --settings coverage.runsettings
+dotnet test src/App.slnx --collect "XPlat Code Coverage" --settings coverage.runsettings
 ```

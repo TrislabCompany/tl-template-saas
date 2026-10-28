@@ -6,7 +6,7 @@
 
 `WebApplicationFactory` over **real** infra via Testcontainers — PostgreSQL + Redis + MinIO. **Docker must be running**; if it isn't, tests fail fast with `DockerUnavailableException` (environmental, not a regression — run the unit projects instead).
 
-`FshWebApplicationFactory` (`Integration.Tests/Infrastructure/`) boots the containers, overlays in-memory config, swaps `IMailService` → `NoOpMailService`, and rewires storage to MinIO.
+`FshWebApplicationFactory` (`Integration.Tests/Infrastructure/`) boots the containers, overlays in-memory config, swaps `IMailService` → `NoOpMailService`, and rewires storage to MinIO, including the keyed presign client.
 
 ## Must-know gotchas
 

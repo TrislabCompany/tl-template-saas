@@ -725,7 +725,7 @@ function ErrorPanel({ message }: { message?: string }) {
         </p>
         <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
           {message ??
-            "The browser couldn't reach /health/ready. The API may be down, or a network policy is blocking the request."}
+            "The browser couldn't reach /api/health/ready. The API may be down, or a network policy is blocking the request."}
         </p>
       </div>
     </div>

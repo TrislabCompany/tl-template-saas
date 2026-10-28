@@ -11,7 +11,7 @@
           <Include>[FSH.Modules.*]*,[FSH.Framework.*]*</Include>
           <!-- Excluded from the meaningful-coverage denominator: hosted/background
                services are long-running loops not driven by request flows or units. -->
-          <Exclude>[*.Tests]*,[*Tests]*,[FSH.Starter.Migrations.*]*,[*]*.Migrations.*,[*]*HostedService</Exclude>
+          <Exclude>[*.Tests]*,[*Tests]*,[App.Migrations.*]*,[*]*.Migrations.*,[*]*HostedService</Exclude>
           <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute,DebuggerNonUserCodeAttribute</ExcludeByAttribute>
           <SkipAutoProps>true</SkipAutoProps>
           <UseSourceLink>false</UseSourceLink>

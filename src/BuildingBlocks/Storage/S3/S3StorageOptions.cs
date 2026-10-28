@@ -15,6 +15,13 @@ public sealed class S3StorageOptions
     public string? ServiceUrl { get; set; }
 
     /// <summary>
+    /// The endpoint the browser reaches the storage at, when it differs from
+    /// <see cref="ServiceUrl"/>, e.g. the front end's hostname that proxies /storage.
+    /// Presigned URLs are signed for this host. Leave empty to sign for <see cref="ServiceUrl"/>.
+    /// </summary>
+    public string? PublicServiceUrl { get; set; }
+
+    /// <summary>
     /// Explicit access key. When either <see cref="AccessKey"/> or <see cref="SecretKey"/>
     /// is empty, the AWS SDK's ambient credential chain is used instead.
     /// </summary>

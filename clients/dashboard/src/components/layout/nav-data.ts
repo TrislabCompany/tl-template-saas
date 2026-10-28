@@ -113,7 +113,7 @@ export const sections: NavSection[] = [
     caption: "System",
     icon: HeartPulse,
     items: [
-      // Health hits the anonymous /health/ready probe — visible to everyone.
+      // Health hits the anonymous /api/health/ready probe — visible to everyone.
       { to: "/system/health", label: "Health", icon: HeartPulse },
       { to: "/system/audits", label: "Audit trail", icon: ScrollText, perm: "Permissions.AuditTrails.View" },
       { to: "/system/sessions", label: "Sessions", icon: Wifi, perm: "Permissions.Sessions.ViewAll" },

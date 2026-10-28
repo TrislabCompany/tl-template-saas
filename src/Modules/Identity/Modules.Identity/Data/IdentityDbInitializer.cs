@@ -185,6 +185,17 @@ internal sealed class IdentityDbInitializer(
         if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail, cancellationToken)
             is not FshUser adminUser)
         {
+            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
+            if (initialPassword is null)
+            {
+                // No password (SEED_ADMIN_PASSWORD in a stamp): no admin account rather than one with a guessable password.
+                if (logger.IsEnabled(LogLevel.Warning))
+                {
+                    logger.LogWarning("No initial admin password for '{TenantId}' Tenant, so no admin user is seeded.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+                }
+                return;
+            }
+
             string adminUserName = $"{multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim()}.{RoleConstants.Admin}".ToUpperInvariant();
             adminUser = new FshUser
             {
@@ -207,7 +218,6 @@ internal sealed class IdentityDbInitializer(
             {
                 logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             }
-            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
             // MUST check IdentityResult: a silent failure (password-policy reject, transient DB error)
@@ -240,10 +250,10 @@ internal sealed class IdentityDbInitializer(
     ///   2. <c>Seed:DefaultAdminPassword</c> from configuration — covers the framework's
     ///      root-tenant seed at startup and any test-host bootstrap. Operators set this
     ///      via env var / user-secrets / production secrets manager.
-    /// Throws if neither source supplies a password — refusing to seed is safer than
-    /// minting an admin user with a predictable secret.
+    /// Returns null if neither source supplies a password, and no admin user is seeded —
+    /// safer than minting an admin user with a predictable secret.
     /// </summary>
-    private string ResolveInitialAdminPassword(string tenantId)
+    private string? ResolveInitialAdminPassword(string tenantId)
     {
         var buffered = passwordBuffer.TryConsume(tenantId);
         if (!string.IsNullOrWhiteSpace(buffered))
@@ -252,14 +262,6 @@ internal sealed class IdentityDbInitializer(
         }
 
         var fromConfig = configuration["Seed:DefaultAdminPassword"];
-        if (!string.IsNullOrWhiteSpace(fromConfig))
-        {
-            return fromConfig;
-        }
-
-        throw new InvalidOperationException(
-            $"No initial admin password available for tenant '{tenantId}'. " +
-            "Supply AdminPassword on the CreateTenant request, or set " +
-            "'Seed:DefaultAdminPassword' in configuration for the root/startup seed.");
+        return string.IsNullOrWhiteSpace(fromConfig) ? null : fromConfig;
     }
 }

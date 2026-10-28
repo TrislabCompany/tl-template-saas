@@ -14,13 +14,13 @@ an existing domain → use `feature-scaffolder` instead.
 2. **First entity** — follow **`add-entity`**.
 3. **First feature** — follow **`add-feature`** (and `add-react-page` if it has UI).
 4. **Migration** — follow **`create-migration`** with `--context {X}DbContext --output-dir {X}`; add the `{X}/` folder in the Migrations project.
-5. **⚠️ Register in ALL FOUR places** — Mediator `o.Assemblies` (Contracts marker **and** module type) + `moduleAssemblies` array, in **both** `FSH.Starter.Api/Program.cs` **and** `FSH.Starter.DbMigrator/Program.cs`. Add to `.slnx`; reference the runtime project from Api, DbMigrator, and the Migrations project.
+5. **⚠️ Register in ALL FOUR places** — Mediator `o.Assemblies` (Contracts marker **and** module type) + `moduleAssemblies` array, in **both** `App.Api/Program.cs` **and** `App.DbMigrator/Program.cs`. Add to `.slnx`; reference the runtime project from Api, DbMigrator, and the Migrations project.
 
 ## Verify it actually loaded (not just compiled)
 ```bash
-dotnet build src/FSH.Starter.slnx                 # 0 warnings
+dotnet build src/App.slnx                 # 0 warnings
 dotnet test src/Tests/Architecture.Tests          # boundary + tenant-isolation rules
-dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending   # new context shows up
+dotnet run --project src/Host/App.DbMigrator -- list-pending   # new context shows up
 ```
 Then hit one endpoint and confirm the handler runs — a missing Mediator marker compiles fine but the handler is silently undiscovered. Finish with the `architecture-guard` workflow.
 

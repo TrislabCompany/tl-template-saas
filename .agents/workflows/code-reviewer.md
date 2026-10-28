@@ -42,7 +42,7 @@ playbook is the review procedure, not a second copy of the rules.
 ```bash
 git diff HEAD
 grep -rn "MediatR\|IRequest<\|IRequestHandler<" src/Modules/ --include="*.cs"   # must be empty
-dotnet build src/FSH.Starter.slnx 2>&1 | grep -E "warning|error"               # 0 expected
+dotnet build src/App.slnx 2>&1 | grep -E "warning|error"               # 0 expected
 ```
 
 ## Output
@@ -61,6 +61,6 @@ dotnet build src/FSH.Starter.slnx 2>&1 | grep -E "warning|error"               #
 - …
 
 ### Verification
-dotnet build src/FSH.Starter.slnx   → expect 0 warnings
-dotnet test src/FSH.Starter.slnx    (integration tests need Docker)
+dotnet build src/App.slnx   → expect 0 warnings
+dotnet test src/App.slnx    (integration tests need Docker)
 ```

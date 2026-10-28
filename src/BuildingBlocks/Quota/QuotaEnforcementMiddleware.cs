@@ -140,8 +140,10 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
     private static bool IsExempt(HttpContext context)
     {
         var path = context.Request.Path;
-        return path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase)
+        return path.StartsWithSegments("/api/health", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase)
             || path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/readyz", StringComparison.OrdinalIgnoreCase)
             || path.StartsWithSegments("/ready", StringComparison.OrdinalIgnoreCase)
             || path.StartsWithSegments("/live", StringComparison.OrdinalIgnoreCase)
             || path.StartsWithSegments("/alive", StringComparison.OrdinalIgnoreCase)

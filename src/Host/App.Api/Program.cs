@@ -1,0 +1,138 @@
+using App.Api.Platform;
+using FSH.Framework.Web;
+using FSH.Framework.Web.Modules;
+using FSH.Modules.Auditing;
+using FSH.Modules.Identity;
+using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
+using FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
+using FSH.Modules.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.v1.GetTenantStatus;
+using FSH.Modules.Webhooks;
+using FSH.Modules.Billing;
+using FSH.Modules.Catalog;
+using FSH.Modules.Tickets;
+using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Reflection;
+using System.Text.Json.Serialization;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// The platform's settings (DATABASE_URL, REDIS_URL, …) become the options the building blocks read.
+builder.Configuration.AddPlatformSettings();
+
+// Serialize enums as string names (reads still accept names or integers). [Flags] enums (AuditTag, BodyCapture)
+// opt back to numeric via their own NumericEnumConverter since comma-joined flag strings break bitwise consumers. Frontends mirror this as string unions.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+if (builder.Environment.IsProduction())
+{
+    static void Require(IConfiguration config, string key, string setting)
+    {
+        if (string.IsNullOrWhiteSpace(config[key]))
+        {
+            throw new InvalidOperationException($"{setting} is not set. The stamp sets it; locally, .env sets it (docs/configuration.md).");
+        }
+    }
+
+    // Postgres and the JWT signing key are required. Every other service falls back to what needs
+    // no service: the in-memory cache without REDIS_URL, local disk without S3_ENDPOINT.
+    var config = builder.Configuration;
+    Require(config, "DatabaseOptions:ConnectionString", "DATABASE_URL");
+    Require(config, "JwtOptions:SigningKey", "JWT_SIGNING_KEY");
+}
+
+builder.Services.AddMediator(o =>
+{
+    o.ServiceLifetime = ServiceLifetime.Scoped;
+    o.Assemblies = [
+        typeof(GenerateTokenCommand),
+        typeof(GenerateTokenCommandHandler),
+        typeof(GetTenantStatusQuery),
+        typeof(GetTenantStatusQueryHandler),
+        typeof(FSH.Modules.Auditing.Contracts.AuditEnvelope),
+        typeof(FSH.Modules.Auditing.Persistence.AuditDbContext),
+        typeof(FSH.Modules.Webhooks.Contracts.v1.CreateWebhookSubscription.CreateWebhookSubscriptionCommand),
+        typeof(FSH.Modules.Webhooks.WebhooksModule),
+        typeof(FSH.Modules.Billing.Contracts.BillingContractsMarker),
+        typeof(FSH.Modules.Billing.BillingModule),
+        typeof(FSH.Modules.Catalog.Contracts.CatalogContractsMarker),
+        typeof(FSH.Modules.Catalog.CatalogModule),
+        typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
+        typeof(FSH.Modules.Tickets.TicketsModule),
+        typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
+        typeof(FSH.Modules.Files.FilesModule),
+        typeof(FSH.Modules.Chat.Contracts.v1.Commands.CreateChannelCommand),
+        typeof(FSH.Modules.Chat.ChatModule),
+        typeof(FSH.Modules.Notifications.Contracts.v1.Commands.MarkNotificationReadCommand),
+        typeof(FSH.Modules.Notifications.NotificationsModule)];
+});
+
+var moduleAssemblies = new Assembly[]
+{
+    typeof(IdentityModule).Assembly,
+    typeof(MultitenancyModule).Assembly,
+    typeof(AuditingModule).Assembly,
+    typeof(FSH.Modules.Files.FilesModule).Assembly,
+    typeof(WebhooksModule).Assembly,
+    typeof(BillingModule).Assembly,
+    typeof(CatalogModule).Assembly,
+    typeof(TicketsModule).Assembly,
+    typeof(FSH.Modules.Chat.ChatModule).Assembly,
+    typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,
+};
+
+builder.AddHeroPlatform(o =>
+{
+    o.EnableCaching = true;
+    o.EnableMailing = true;
+    o.EnableJobs = true;
+    o.EnableQuotas = true;
+    o.EnableSse = true;
+    o.EnableRealtime = true;
+});
+
+builder.AddModules(moduleAssemblies);
+
+// Self-heal deployments carrying retired per-module `{module}-outbox-dispatcher` Hangfire recurring jobs
+// (the outbox is now dispatched by OutboxDispatcherHostedService). No-op once the storage is clean.
+builder.Services.AddHostedService<App.Api.OrphanedOutboxRecurringJobCleanupService>();
+
+// Demo data is provisioned by the DbMigrator's `seed-demo` verb, not the API — the API never mutates data on startup.
+// See src/Host/App.DbMigrator/README.md.
+
+var app = builder.Build();
+
+app.UseHeroMultiTenantDatabases();
+app.UseHeroPlatform(p =>
+{
+    p.MapModules = true;
+    p.ServeStaticFiles = true;
+    p.UseQuotas = true;
+    p.MapSseEndpoints = true;
+    p.MapRealtime = true;
+});
+
+// The platform's probes: /healthz while the process runs, /readyz once every health check passes:
+// the module databases, Hangfire, and the cache when REDIS_URL is set.
+app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
+app.MapHealthChecks("/readyz").AllowAnonymous();
+
+// Called through a front end, shows that its /api proxy reaches the API.
+app.MapGet("/api/health/info", (IConfiguration config) => Results.Ok(new
+   {
+       name = "App.Api",
+       version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
+       environment = config["Platform:Environment"],
+   }))
+   .WithTags("Health")
+   .AllowAnonymous();
+
+app.MapGet("/", () => Results.Ok(new { message = "hello world!" }))
+   .WithTags("PlayGround")
+   .AllowAnonymous();
+
+await app.RunAsync();

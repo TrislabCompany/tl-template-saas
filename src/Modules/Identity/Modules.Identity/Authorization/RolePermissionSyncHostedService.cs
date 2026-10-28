@@ -15,7 +15,7 @@ namespace FSH.Modules.Identity.Authorization;
 /// </summary>
 /// <remarks>
 /// Implemented as a <see cref="BackgroundService"/> so it does not block host startup.
-/// In production, the tenant catalog is migrated by the standalone <c>FSH.Starter.DbMigrator</c>
+/// In production, the tenant catalog is migrated by the standalone <c>App.DbMigrator</c>
 /// console application before the API process starts, so the tenant store is already
 /// populated when this service runs. The polling loop covers test environments and the
 /// brief window during local Aspire startup where catalog migration may overlap with

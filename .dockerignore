@@ -1,31 +1,27 @@
-# .NET build artifacts
-**/bin
-**/obj
-**/.vs
-**/TestResults
-
-# Node / frontend build artifacts
-**/node_modules
-**/dist
-**/.vite
-**/coverage
-**/playwright-report
-**/test-results
-
-# Test projects (not needed in any runtime image)
-src/Tests/
-
-# VCS / editor / docs / local dev
+# The api and migrator images build from the repository root. Keeps the build
+# context small and free of secrets: no tests, no front ends, no build output,
+# no local files. admin and dashboard build from their own folders, each with
+# its own .dockerignore.
 .git
 .github
-.idea
 .vscode
+.idea
+.vs
+.agents
+.devcontainer
+docs
+clients
+src/Tests
+src/Host/App.AppHost
+**/bin
+**/obj
+**/TestResults
+**/node_modules
+*.log
+.env
+.env.*
+.DS_Store
+**/Dockerfile
+.dockerignore
+docker-compose.yml
 *.md
-LICENSE
-**/.env
-**/.env.*
-!**/.env.example
-deploy/
-docs/
-clients/dashboard/public/config.json
-clients/admin/public/config.json

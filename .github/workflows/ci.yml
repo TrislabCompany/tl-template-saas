@@ -1,0 +1,24 @@
+name: ci
+
+# Builds the four images in platform.yaml, runs the tests, scans the images
+# with Trivy and checks platform.yaml, on every PR and every push to main.
+# Pushes nothing. All steps live in the reusable workflow in tl-platform,
+# pinned by tag; the job is named ci like the one it calls, so the required
+# check is `ci / ci`. Change only the test command here. The test command runs
+# the unit, architecture and integration tests; the integration tests start
+# their own throw-away containers.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  ci:
+    permissions:
+      contents: read
+    uses: TrislabCompany/tl-platform/.github/workflows/app-ci.yml@app-workflows/v0.1.0
+    with:
+      test-command: dotnet test src/App.slnx

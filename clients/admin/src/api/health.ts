@@ -55,9 +55,9 @@ async function fetchHealth(path: string, timeoutMs = 8_000): Promise<HealthResul
 }
 
 export function getLiveness(): Promise<HealthResult> {
-  return fetchHealth("/health/live");
+  return fetchHealth("/api/health/live");
 }
 
 export function getReadiness(): Promise<HealthResult> {
-  return fetchHealth("/health/ready");
+  return fetchHealth("/api/health/ready");
 }

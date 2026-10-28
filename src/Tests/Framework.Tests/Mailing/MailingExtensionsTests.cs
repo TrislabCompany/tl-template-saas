@@ -8,7 +8,7 @@ namespace Framework.Tests.Mailing;
 
 public sealed class MailingExtensionsTests
 {
-    private static ServiceProvider BuildProvider(bool useSendGrid)
+    private static ServiceProvider BuildProvider(bool useSendGrid, string? smtpPassword = "smtp-secret")
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -17,6 +17,7 @@ public sealed class MailingExtensionsTests
                 ["MailOptions:From"] = "noreply@x.com",
                 ["MailOptions:Smtp:Host"] = "localhost",
                 ["MailOptions:Smtp:Port"] = "587",
+                ["MailOptions:Smtp:Password"] = smtpPassword,
                 ["MailOptions:SendGrid:ApiKey"] = "sg-key",
             })
             .Build();
@@ -41,6 +42,19 @@ public sealed class MailingExtensionsTests
 
         // Assert
         mailService.ShouldBeOfType<SmtpMailService>();
+    }
+
+    [Fact]
+    public void AddHeroMailing_Should_RegisterDisabledService_When_NoSmtpPassword()
+    {
+        // Arrange: no SMTP_PASSWORD in the stamp turns mail off
+        using var provider = BuildProvider(useSendGrid: false, smtpPassword: null);
+
+        // Act
+        var mailService = provider.GetRequiredService<IMailService>();
+
+        // Assert
+        mailService.ShouldBeOfType<DisabledMailService>();
     }
 
     [Fact]

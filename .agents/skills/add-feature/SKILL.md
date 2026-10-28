@@ -99,7 +99,7 @@ group.MapCreate{Entity}Endpoint();   // group = endpoints.MapGroup("api/v{versio
 ## Step 6 — Verify
 
 ```bash
-dotnet build src/FSH.Starter.slnx          # 0 warnings (TreatWarningsAsErrors)
+dotnet build src/App.slnx          # 0 warnings (TreatWarningsAsErrors)
 dotnet test src/Tests/{X}.Tests            # + add a handler/validator test (see testing-guide)
 ```
 

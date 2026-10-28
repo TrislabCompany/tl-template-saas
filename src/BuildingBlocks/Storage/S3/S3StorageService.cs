@@ -4,6 +4,7 @@ using FSH.Framework.Shared.Storage;
 using FSH.Framework.Storage.DTOs;
 using FSH.Framework.Storage.Services;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
@@ -12,7 +13,11 @@ namespace FSH.Framework.Storage.S3;
 
 internal sealed partial class S3StorageService : IStorageService
 {
+    /// <summary>The service key of the client that signs presigned URLs (see <see cref="S3StorageOptions.PublicServiceUrl"/>).</summary>
+    public const string PresignClientKey = "fsh-s3-presign";
+
     private readonly IAmazonS3 _s3;
+    private readonly IAmazonS3 _presigner;
     private readonly S3StorageOptions _options;
     private readonly ILogger<S3StorageService> _logger;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
@@ -26,9 +31,14 @@ internal sealed partial class S3StorageService : IStorageService
     [GeneratedRegex(@"[^a-zA-Z0-9_\.-]")]
     private static partial Regex FileNameSanitizer();
 
-    public S3StorageService(IAmazonS3 s3, IOptions<S3StorageOptions> options, ILogger<S3StorageService> logger)
+    public S3StorageService(
+        IAmazonS3 s3,
+        [FromKeyedServices(PresignClientKey)] IAmazonS3 presigner,
+        IOptions<S3StorageOptions> options,
+        ILogger<S3StorageService> logger)
     {
         _s3 = s3;
+        _presigner = presigner;
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger;
         _contentTypeProvider = new FileExtensionContentTypeProvider();
@@ -248,7 +258,7 @@ internal sealed partial class S3StorageService : IStorageService
             Protocol = ResolvePresignProtocol()
         };
 
-        var url = await _s3.GetPreSignedURLAsync(request).ConfigureAwait(false);
+        var url = await _presigner.GetPreSignedURLAsync(request).ConfigureAwait(false);
 
         var requiredHeaders = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -288,7 +298,7 @@ internal sealed partial class S3StorageService : IStorageService
             request.ResponseHeaderOverrides.ContentDisposition = responseContentDisposition;
         }
 
-        var url = await _s3.GetPreSignedURLAsync(request).ConfigureAwait(false);
+        var url = await _presigner.GetPreSignedURLAsync(request).ConfigureAwait(false);
         return new Uri(url);
     }
 
@@ -344,8 +354,9 @@ internal sealed partial class S3StorageService : IStorageService
     // HTTPS regardless of ServiceURL scheme (un-PUTable there). Infer protocol from ServiceURL.
     private Protocol ResolvePresignProtocol()
     {
-        if (!string.IsNullOrWhiteSpace(_options.ServiceUrl)
-            && Uri.TryCreate(_options.ServiceUrl, UriKind.Absolute, out var uri)
+        var presignUrl = string.IsNullOrWhiteSpace(_options.PublicServiceUrl) ? _options.ServiceUrl : _options.PublicServiceUrl;
+        if (!string.IsNullOrWhiteSpace(presignUrl)
+            && Uri.TryCreate(presignUrl, UriKind.Absolute, out var uri)
             && string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
         {
             return Protocol.HTTP;

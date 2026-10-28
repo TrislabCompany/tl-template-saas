@@ -21,7 +21,7 @@ backend↔frontend contract, and verification.
 
 ## Verify
 ```bash
-dotnet build src/FSH.Starter.slnx && dotnet test src/Tests/{X}.Tests
+dotnet build src/App.slnx && dotnet test src/Tests/{X}.Tests
 # if a UI surface: cd clients/{app} && npm run lint && npm run test:e2e
 ```
 Then run the **`code-reviewer`** and **`architecture-guard`** workflows before commit.

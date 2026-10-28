@@ -96,19 +96,19 @@ public sealed class {Name}DbContext : BaseDbContext
 ## Step 4 — Solution + project references
 
 ```bash
-dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}/Modules.{Name}.csproj
-dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}.Contracts/Modules.{Name}.Contracts.csproj
+dotnet sln src/App.slnx add src/Modules/{Name}/Modules.{Name}/Modules.{Name}.csproj
+dotnet sln src/App.slnx add src/Modules/{Name}/Modules.{Name}.Contracts/Modules.{Name}.Contracts.csproj
 ```
 
-Add a `<ProjectReference>` to the runtime module from **both** `FSH.Starter.Api` and `FSH.Starter.DbMigrator`, and reference the runtime project from `FSH.Starter.Migrations.PostgreSQL`.
+Add a `<ProjectReference>` to the runtime module from **both** `App.Api` and `App.DbMigrator`, and reference the runtime project from `App.Migrations.PostgreSQL`.
 
 ## Step 5 — Migrations folder
 
-Add a `{Name}/` folder in `src/Host/FSH.Starter.Migrations.PostgreSQL`, then create the initial migration (see **create-migration**) with `--context {Name}DbContext`.
+Add a `{Name}/` folder in `src/Host/App.Migrations.PostgreSQL`, then create the initial migration (see **create-migration**) with `--context {Name}DbContext`.
 
 ## Step 6 — ⚠️ Register in ALL FOUR places (the footgun)
 
-Identical edits in **both** `FSH.Starter.Api/Program.cs` **and** `FSH.Starter.DbMigrator/Program.cs`:
+Identical edits in **both** `App.Api/Program.cs` **and** `App.DbMigrator/Program.cs`:
 
 1. Mediator `o.Assemblies` — add **two** markers: a Contracts type (e.g. `typeof(FSH.Modules.{Name}.Contracts.{Name}ContractsMarker)`) **and** the module type (`typeof({Name}Module)`).
 2. `moduleAssemblies` array — add `typeof({Name}Module).Assembly`.
@@ -118,9 +118,9 @@ Miss the Mediator marker → handlers silently undiscovered. Miss the assembly e
 ## Step 7 — Verify
 
 ```bash
-dotnet build src/FSH.Starter.slnx                  # 0 warnings
+dotnet build src/App.slnx                  # 0 warnings
 dotnet test src/Tests/Architecture.Tests           # boundary + tenant-isolation rules must pass
-dotnet test src/FSH.Starter.slnx
+dotnet test src/App.slnx
 ```
 
 ## Checklist

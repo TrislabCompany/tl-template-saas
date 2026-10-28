@@ -1,9 +1,10 @@
-# FullStackHero .NET Starter Kit
+# This repository
 
-> A production-ready modular .NET 10 monolith + two React 19 apps, built for enterprise SaaS.
+> A multi-tenant SaaS on the Trislab platform: a modular .NET 10 monolith + two React 19 apps, built on
+> the fullstackhero .NET starter kit and adapted to the platform contract (`README.md`, `docs/`).
 
-This file is the canonical guide for **all** AI coding tools (Claude Code, Gemini CLI, Cursor, Codex, …).
-`CLAUDE.md` and `GEMINI.md` are thin bridges that import this file — edit conventions **here**, not there.
+This file is the canonical guide for **all** AI coding tools (Claude Code, Cursor, Codex, …).
+`CLAUDE.md` is a thin bridge that imports this file — edit conventions **here**, not there.
 
 This file is the map. Detailed conventions live in `.agents/rules/` and are read on demand — **read the
 relevant rule file before working in that area** (see the index below). Keep this file lean.
@@ -11,7 +12,7 @@ relevant rule file before working in that area** (see the index below). Keep thi
 ## What this is
 
 A **modular monolith** (Vertical Slice Architecture) backend that ships with two **React + Vite**
-front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and more are first-class.
+front-ends. Multitenancy, auth, auditing, billing, files, chat and more are first-class.
 
 - **Backend** — .NET 10, EF Core 10, PostgreSQL, Redis, JWT + ASP.NET Identity, Finbuckle multitenancy,
   Hangfire, OpenAPI/Scalar, Serilog + OpenTelemetry, .NET Aspire.
@@ -24,14 +25,15 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 |------|------|
 | `src/BuildingBlocks/` | Shared framework libraries (Core, Persistence, Web, Caching, Eventing, Storage, Quota…). **Protected — see below.** |
 | `src/Modules/{Name}/` | Bounded contexts. Each has a runtime project + a `.Contracts` project (its only public API). |
-| `src/Host/FSH.Starter.Api` | Composition-root Web API host. |
-| `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres, Redis, MinIO, migrator, API, **both React apps**). |
-| `src/Host/FSH.Starter.DbMigrator` | One-shot migrate/seed runner. DB is **not** migrated at API startup. |
-| `src/Host/FSH.Starter.Migrations.PostgreSQL` | All EF migrations, organized per-module by folder. |
+| `src/Host/App.Api` | Composition-root Web API host. `Platform/PlatformConfiguration.cs` maps the platform's settings onto options. |
+| `src/Host/App.AppHost` | .NET Aspire orchestrator (Postgres, Valkey, rustfs storage, migrator, API, **both React apps**). |
+| `src/Host/App.DbMigrator` | One-shot migrate/seed runner, the init container of `api`. DB is **not** migrated at API startup. |
+| `src/Host/App.Migrations.PostgreSQL` | All EF migrations, organized per-module by folder. |
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
-| `src/Tools/CLI` | The `fsh` CLI (Spectre.Console). |
-| `clients/admin`, `clients/dashboard` | The two React apps. |
-| `deploy/` | Infra (docker, terraform, dokploy). |
+| `clients/admin`, `clients/dashboard` | The two React apps, each with its Dockerfile and `docker/` (nginx, `/config.json`). |
+| `docker-compose.yml`, `.env.example` | The four images locally, without the .NET SDK. |
+| `platform.yaml`, `.github/workflows/ci.yml` | The images and app sizing for the platform; the `ci / ci` check. |
+| `docs/` | How the repository works on the platform: getting started, architecture, configuration, deployment, modules. |
 
 ## Tech stack
 
@@ -45,18 +47,18 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | Multitenancy | Finbuckle 10.x | Realtime | `@microsoft/signalr`, SSE (dashboard) |
 | Cache / Jobs | Redis, Hangfire | Tests | Playwright (route-mocked) |
 | Docs | OpenAPI + Scalar | API client | hand-written `apiFetch` (no codegen) |
-| Hosting | .NET Aspire | Env | runtime `/config.json` (not `VITE_*`) |
+| Hosting | .NET Aspire locally, Azure Container Apps | Env | runtime `/config.json` (`PLATFORM_*`, `PUBLIC_*`) |
 | Testing | xUnit, Shouldly, NSubstitute, AutoFixture, NetArchTest, Testcontainers | | |
 
 ## Build & run
 
 ```bash
-# Whole stack (Postgres + pgAdmin + Redis + MinIO + migrator + API + both React apps)
-dotnet run --project src/Host/FSH.Starter.AppHost   # one-time: npm install in clients/admin & clients/dashboard
+# Whole stack (Postgres + pgAdmin + Valkey + rustfs + migrator + API + both React apps)
+dotnet run --project src/Host/App.AppHost   # one-time: npm install in clients/admin & clients/dashboard
 
-dotnet build src/FSH.Starter.slnx                   # build backend
-dotnet run --project src/Host/FSH.Starter.Api       # API only → https://localhost:7030 (/scalar)
-dotnet test src/FSH.Starter.slnx                    # tests — integration tests REQUIRE Docker
+dotnet build src/App.slnx                   # build backend
+dotnet run --project src/Host/App.Api       # API only → https://localhost:7030 (/scalar)
+dotnet test src/App.slnx                    # tests — integration tests REQUIRE Docker
 
 cd clients/admin && npm install && npm run dev       # → http://localhost:5173
 cd clients/dashboard && npm install && npm run dev   # → http://localhost:5174
@@ -64,15 +66,23 @@ cd clients/dashboard && npm install && npm run dev   # → http://localhost:5174
 
 Migrations / seed (DbMigrator, separate step):
 ```bash
-dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply [--seed]
-dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending
+DATABASE_URL=... dotnet run --project src/Host/App.DbMigrator -- apply [--seed]
+dotnet run --project src/Host/App.DbMigrator -- list-pending
 ```
 
-**Ports:** API 7030 (https)/5030 (http) · admin 5173 · dashboard 5174 · Postgres 5432 · pgAdmin 5050 · Valkey 6379 · MinIO 9000/9001.
+**Ports:** API 7030 (https)/5030 (http) · admin 5173 · dashboard 5174 · Postgres 5432 · pgAdmin 5050 · Valkey 6379 · storage 9000. With `docker compose`: admin 8081 · dashboard 8082.
 
 ## Branching & PRs
 
-Single long-lived branch: **`main`** (the default) — there is **no `develop`**. Branch from and target `main`; stable releases are cut from `v*` tags. CI is split into path-scoped **Backend CI** (`src/**`) and **Frontend CI** (`clients/**`) workflows; branch protection requires only those two gate checks — never the individual jobs, which are skipped on the other side's PRs.
+Single long-lived branch: **`main`**. Branch from and target `main`; a PR needs the check `ci / ci` and a code owner's approval, and is squashed on merge. Releases are tags `vX.Y.Z`. `.github/workflows/ci.yml` only calls the platform's reusable workflow: never add steps to it.
+
+## Platform contract (do not break)
+
+- Every image that serves traffic listens on **8080** and runs as a **non-root** user; base images are pinned by digest.
+- The API answers `/healthz` and `/readyz`; the front ends' nginx answers both too.
+- The app reads the platform's settings (`DATABASE_URL`, `REDIS_URL`, `S3_*`, `JWT_SIGNING_KEY`, …) **only** in `src/Host/App.Api/Platform/PlatformConfiguration.cs`; everything else reads options. See `docs/configuration.md`.
+- The front ends call the API at the relative path `/api` and storage at `/storage`, through their nginx; `/config.json` holds only `PLATFORM_*` and `PUBLIC_*` keys.
+- Migrations are backward compatible: the previous API revision keeps serving on the migrated database.
 
 ## Golden rules (do not break)
 
@@ -85,7 +95,7 @@ Single long-lived branch: **`main`** (the default) — there is **no `develop`**
 7. **Propagate `CancellationToken`** into every EF/IO call; add as `= default` on public service methods.
 8. **Every command handler + paginated query handler needs a validator** (`{Name}Validator`). Enforced by `Architecture.Tests`.
 9. **Frontend: pass per-call data through `mutate(arg)`**, never via state the mutation callbacks close over (execute-time race). See `frontend/shared.md`.
-10. **Docs + changelog travel with the change** — a user-facing change (feature, endpoint, config, infra, breaking change) isn't done until the **separate docs repo** (`github.com/fullstackhero/docs`, the Astro site) is updated to match **and** a changelog entry is added (`src/content/docs/changelog/`). Don't let the docs drift from the code.
+10. **Docs travel with the change** — a change to a setting, a module, an endpoint the front ends use or the way the product runs isn't done until `README.md` and `docs/` match it.
 
 ## Rules index — read the relevant file before you work
 

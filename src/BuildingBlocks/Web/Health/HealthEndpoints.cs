@@ -12,7 +12,9 @@ public static class HealthEndpoints
     public sealed record HealthEntry(string Name, string Status, string? Description, double DurationMs, Dictionary<string, object>? Details = default);
     public static IEndpointRouteBuilder MapHeroHealthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/health")
+        // Under /api, so the front ends reach it through their /api proxy. The platform's
+        // probes, /healthz and /readyz, are mapped in the API host onto the same checks.
+        var group = app.MapGroup("/api/health")
                        .WithTags("Health")
                        .AllowAnonymous()
                        .DisableRateLimiting();

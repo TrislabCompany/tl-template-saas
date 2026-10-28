@@ -13,7 +13,7 @@ namespace FSH.Modules.Multitenancy;
 /// pending EF Core migrations, or when the per-tenant migration probe throws. Wired into
 /// <c>/health/ready</c>, which Kubernetes / load-balancer readiness probes key off — so
 /// a pod whose schema is behind the running build is kept out of rotation until the
-/// standalone <c>FSH.Starter.DbMigrator</c> catches it up.
+/// standalone <c>App.DbMigrator</c> catches it up.
 /// </summary>
 public sealed class TenantMigrationsHealthCheck : IHealthCheck
 {
@@ -102,6 +102,6 @@ public sealed class TenantMigrationsHealthCheck : IHealthCheck
             parts.Add($"error probing tenant(s): {string.Join(", ", errored)}");
         }
         return "Tenant schema is not at head — " + string.Join("; ", parts) +
-               ". Run FSH.Starter.DbMigrator to apply pending migrations.";
+               ". Run App.DbMigrator to apply pending migrations.";
     }
 }

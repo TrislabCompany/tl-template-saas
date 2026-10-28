@@ -1,5 +1,3 @@
-import { env } from "@/env";
-
 export type HealthStatus = "Healthy" | "Degraded" | "Unhealthy";
 
 export type HealthEntry = {
@@ -32,7 +30,7 @@ export type HealthSnapshot = HealthResult & {
  */
 export async function getReadiness(signal?: AbortSignal): Promise<HealthSnapshot> {
   const t0 = performance.now();
-  const url = `${env.apiBase}/health/ready`;
+  const url = `/api/health/ready`;
   const response = await fetch(url, {
     method: "GET",
     headers: { Accept: "application/json" },

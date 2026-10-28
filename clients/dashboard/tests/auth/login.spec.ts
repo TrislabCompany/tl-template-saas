@@ -18,7 +18,7 @@ async function setConfig(page: import("@playwright/test").Page, demoMode: boolea
     route.fulfill({
       status: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apiBase: "", defaultTenant: "root", demoMode }),
+      body: JSON.stringify({ PUBLIC_DEFAULT_TENANT: "root", PUBLIC_DEMO_MODE: String(demoMode) }),
     }),
   );
 }

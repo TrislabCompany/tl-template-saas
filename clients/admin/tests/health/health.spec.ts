@@ -3,8 +3,8 @@ import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
 import { installAdminShellMocks, ADMIN_PERMS } from "../helpers/shell-mocks";
 import { mockJsonResponse } from "../helpers/api-mocks";
 
-// apiBase is "" in dev config, so the probes hit the origin: /health/live
-// and /health/ready (anonymous, NO /api/v1 prefix).
+// The probes go through the /api proxy: /api/health/live
+// and /api/health/ready (anonymous, no /v1 version segment).
 const LIVE_HEALTHY = {
   status: "Healthy",
   results: [],

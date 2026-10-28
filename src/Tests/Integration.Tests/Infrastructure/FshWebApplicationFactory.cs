@@ -115,7 +115,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             {
                 ["DatabaseOptions:Provider"] = "POSTGRESQL",
                 ["DatabaseOptions:ConnectionString"] = _postgres.GetConnectionString(),
-                ["DatabaseOptions:MigrationsAssembly"] = "FSH.Starter.Migrations.PostgreSQL",
+                ["DatabaseOptions:MigrationsAssembly"] = "App.Migrations.PostgreSQL",
                 ["CachingOptions:Redis"] = "",
                 ["JwtOptions:Issuer"] = TestConstants.JwtIssuer,
                 ["JwtOptions:Audience"] = TestConstants.JwtAudience,
@@ -230,6 +230,8 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 new Amazon.Runtime.BasicAWSCredentials(MinioAccessKey, MinioSecretKey),
                 config);
         });
+        services.AddKeyedSingleton<IAmazonS3>(FSH.Framework.Storage.S3.S3StorageService.PresignClientKey,
+            (sp, _) => sp.GetRequiredService<IAmazonS3>());
         services.AddTransient<FSH.Framework.Storage.S3.S3StorageService>();
         services.AddTransient<FSH.Framework.Storage.Services.IStorageService>(sp =>
             sp.GetRequiredService<FSH.Framework.Storage.S3.S3StorageService>());

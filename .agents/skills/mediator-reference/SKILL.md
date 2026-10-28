@@ -44,8 +44,8 @@ interface name matches MediatR's — that part is fine).
 
 The source generator only scans assemblies listed in `o.Assemblies`, and that list exists in **two host
 files**. A new module needs **two markers** (a Contracts type **and** the module type) added to the Mediator
-list **plus** an entry in the `moduleAssemblies` array — in **both** `FSH.Starter.Api/Program.cs` **and**
-`FSH.Starter.DbMigrator/Program.cs`:
+list **plus** an entry in the `moduleAssemblies` array — in **both** `App.Api/Program.cs` **and**
+`App.DbMigrator/Program.cs`:
 
 ```csharp
 builder.Services.AddMediator(o =>

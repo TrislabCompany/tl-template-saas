@@ -16,7 +16,7 @@ This folder contains solution-wide architecture tests for the FullStackHero .NET
 
 ## Running the Tests
 
-- Run all tests (including architecture tests): `dotnet test src/FSH.Starter.slnx`.
+- Run all tests (including architecture tests): `dotnet test src/App.slnx`.
 - Architecture tests are lightweight and rely only on project and file structure; they do not require any external services or databases.
 
 ## Extending the Rules

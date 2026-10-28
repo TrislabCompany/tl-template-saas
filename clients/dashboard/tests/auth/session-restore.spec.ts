@@ -47,7 +47,7 @@ async function seedExpiredSession(page: Page) {
     route.fulfill({
       status: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apiBase: "", defaultTenant: "acme", demoMode: true }),
+      body: JSON.stringify({ PUBLIC_DEFAULT_TENANT: "acme", PUBLIC_DEMO_MODE: "true" }),
     }),
   );
   await page.addInitScript(

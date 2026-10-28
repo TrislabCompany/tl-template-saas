@@ -1,0 +1,34 @@
+# The images this repository builds, and the image and sizing of each app
+# (13-app-templates.md section 5 in tl-cloud-infrastructure). Stays within a
+# sandbox stamp's default caps: Consumption, 0.5 vCPU, 1Gi, two replicas.
+images:                                 # built once per push to main
+  api:       { dockerfile: src/Host/App.Api/Dockerfile }
+  migrator:  { dockerfile: src/Host/App.DbMigrator/Dockerfile }
+  admin:     { dockerfile: clients/admin/Dockerfile, context: clients/admin }
+  dashboard: { dockerfile: clients/dashboard/Dockerfile, context: clients/dashboard }
+apps:
+  dashboard:                            # matches apps[].name in stamp.yaml
+    image: dashboard
+    profile: Consumption
+    cpu: 0.25
+    memory: 0.5Gi
+    min_replicas: 0
+    max_replicas: 2
+  admin:
+    image: admin
+    profile: Consumption
+    cpu: 0.25
+    memory: 0.5Gi
+    min_replicas: 0
+    max_replicas: 2
+  api:
+    image: api
+    init_image: migrator                # runs to completion before api starts
+    profile: Consumption
+    cpu: 0.5
+    memory: 1Gi
+    min_replicas: 0
+    max_replicas: 2
+# environments:                         # optional overrides per Environment, added by the product
+#   prod:                               # team once that stamp's caps allow them
+#     api: { min_replicas: 2, max_replicas: 10 }

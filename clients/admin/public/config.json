@@ -1,7 +1,7 @@
 {
-  "apiBase": "",
-  "defaultTenant": "root",
-  "dashboardUrl": "http://localhost:5174",
-  "inactivityIdleMs": 600000,
-  "inactivityWarningMs": 60000
+  "PLATFORM_ENVIRONMENT": "local",
+  "PUBLIC_DEFAULT_TENANT": "root",
+  "PUBLIC_DASHBOARD_URL": "http://localhost:5174",
+  "PUBLIC_INACTIVITY_IDLE_MS": "600000",
+  "PUBLIC_INACTIVITY_WARNING_MS": "60000"
 }

@@ -18,7 +18,7 @@ class-variance-authority (shadcn-style) · `@microsoft/signalr`. Path alias `@` 
 
 ## Env (`src/env.ts`) — runtime, not build-time
 
-`loadRuntimeConfig()` fetches `/config.json` once at boot (awaited in `main.tsx` before React mounts); `env` is a getter that throws if read too early. One built image promotes across environments (operator writes `config.json`). The only `VITE_*` var, `VITE_API_BASE_URL`, configures the **Vite dev proxy target only** — it is not the runtime apiBase (`config.json` ships `apiBase: ""`, relative).
+`loadRuntimeConfig()` fetches `/config.json` once at boot (awaited in `main.tsx` before React mounts); `env` is a getter that throws if read too early. One built image promotes across environments: `docker/docker-entrypoint.sh` writes `config.json` at container start from `docker/config.json.template`, with `PLATFORM_*` and `PUBLIC_*` settings only. The API is always at the relative path `/api` (`env.apiBase` is `""`); nginx, or the Vite dev server with `API_UPSTREAM`, proxies it.
 
 ## Data fetching (TanStack Query v5)
 

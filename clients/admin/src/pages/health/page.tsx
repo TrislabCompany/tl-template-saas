@@ -51,8 +51,8 @@ export function HealthPage() {
         description={
           <>
             Live process and dependency probes. Auto-refreshes every {REFRESH_INTERVAL_MS / 1000} seconds.
-            The probe endpoints themselves (<code className="code-chip">/health/live</code>{" "}
-            <code className="code-chip">/health/ready</code>) are unauthenticated so they can be
+            The probe endpoints themselves (<code className="code-chip">/api/health/live</code>{" "}
+            <code className="code-chip">/api/health/ready</code>) are unauthenticated so they can be
             scraped by load balancers and uptime monitors.
           </>
         }
@@ -109,7 +109,7 @@ export function HealthPage() {
 
       <ProbeSection
         title="Liveness"
-        path="/health/live"
+        path="/api/health/live"
         result={live.data}
         loading={live.isLoading}
         description="Process is up and serving requests. No external dependencies are checked."
@@ -117,7 +117,7 @@ export function HealthPage() {
 
       <ProbeSection
         title="Readiness"
-        path="/health/ready"
+        path="/api/health/ready"
         result={ready.data}
         loading={ready.isLoading}
         description="All registered dependency checks must report Healthy for the probe to return 200. A 503 here flips the API out of the load-balancer pool."

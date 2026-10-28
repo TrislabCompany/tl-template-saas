@@ -60,10 +60,10 @@ Adding a module requires editing **four** lists. Miss one and it fails *silently
 
 | Place | File | Symptom if missed |
 |---|---|---|
-| Mediator `o.Assemblies` (two markers: Contracts type **and** module type) | `src/Host/FSH.Starter.Api/Program.cs` | Handlers silently undiscovered |
-| `moduleAssemblies` array | `src/Host/FSH.Starter.Api/Program.cs` | Module never loaded |
-| Mediator assemblies (same pair) | `src/Host/FSH.Starter.DbMigrator/Program.cs` | Migrate/seed misses the module |
-| module assemblies array | `src/Host/FSH.Starter.DbMigrator/Program.cs` | Migrate/seed misses the module |
+| Mediator `o.Assemblies` (two markers: Contracts type **and** module type) | `src/Host/App.Api/Program.cs` | Handlers silently undiscovered |
+| `moduleAssemblies` array | `src/Host/App.Api/Program.cs` | Module never loaded |
+| Mediator assemblies (same pair) | `src/Host/App.DbMigrator/Program.cs` | Migrate/seed misses the module |
+| module assemblies array | `src/Host/App.DbMigrator/Program.cs` | Migrate/seed misses the module |
 
 After wiring, the fastest sanity check is: build, hit the endpoint, confirm the handler runs.
 
@@ -92,8 +92,9 @@ No global mutable static collections enumerated under concurrency. `Audit` (Audi
 
 ## Configuration & options
 
-- `appsettings.json` (+ `.Development`/`.Production`) live in `src/Host/FSH.Starter.Api/`. DbMigrator links the same files.
+- `appsettings.json` (+ `.Development`/`.Production`) live in `src/Host/App.Api/`. DbMigrator links the same files.
 - Bind config with the Options pattern: `AddOptions<T>().BindConfiguration(nameof(T))`, section name == type name (e.g. `JwtOptions`, `DatabaseOptions`, `CachingOptions`, `CorsOptions`, `QuotaOptions`, `RateLimitingOptions`; **storage section is `Storage`**, not `StorageOptions`). Add `.ValidateDataAnnotations().ValidateOnStart()` for fail-fast.
 - Validate critical options via `IValidatableObject` — `JwtOptions` requires `SigningKey` ≥32 chars and **rejects placeholder strings containing `"replace-with"`**; `DatabaseOptions` rejects empty connection strings.
-- **Production fail-fast** (`Program.cs`, before service registration): missing `DatabaseOptions:ConnectionString`, `CachingOptions:Redis`, or `JwtOptions:SigningKey` throws. Dev secrets via `dotnet user-secrets` (AppHost has a `UserSecretsId`); MinIO creds are Aspire secret parameters.
+- **Platform settings** (`Program.cs`, first line after the builder): `AddPlatformSettings()` from `Platform/PlatformConfiguration.cs` maps `DATABASE_URL`, `REDIS_URL`, `MESSAGING_URL`, `S3_*` and the secrets onto the options. It is the only code that reads those names; the migrator compiles the same file. See `docs/configuration.md`.
+- **Production fail-fast** (`Program.cs`, before service registration): missing `DatabaseOptions:ConnectionString` (`DATABASE_URL`) or `JwtOptions:SigningKey` (`JWT_SIGNING_KEY`) throws. Every other service falls back to what needs no service. Local values for the AppHost are in `appsettings.Development.json` and `AppHost.cs`; the storage keys are Aspire secret parameters.
 - Platform composition is one call each: `builder.AddHeroPlatform(o => { o.Enable... })` (DI) and `app.UseHeroPlatform(...)` (middleware). Feature flags toggle Caching/Jobs/Mailing/Quotas/Sse/Realtime/OpenTelemetry/CORS/Idempotency.

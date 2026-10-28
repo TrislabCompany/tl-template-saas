@@ -72,6 +72,11 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(config);
 
         var hangfireOptions = config.GetSection(nameof(HangfireOptions)).Get<HangfireOptions>() ?? new HangfireOptions();
+        if (string.IsNullOrWhiteSpace(hangfireOptions.Password))
+        {
+            return app;
+        }
+
         var dashboardOptions = new DashboardOptions();
         dashboardOptions.AppPath = "/";
         dashboardOptions.Authorization = new[]
@@ -79,7 +84,7 @@ public static class Extensions
            new HangfireCustomBasicAuthenticationFilter
            {
                 User = hangfireOptions.UserName!,
-                Pass = hangfireOptions.Password!
+                Pass = hangfireOptions.Password
            }
         };
 

@@ -112,8 +112,8 @@ Use the **create-migration** skill (build first, correct `--context`):
 
 ```bash
 dotnet ef migrations add Add{Entity} \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
+  --project src/Host/App.Migrations.PostgreSQL \
+  --startup-project src/Host/App.Api \
   --context {X}DbContext
 ```
 

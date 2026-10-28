@@ -10,7 +10,7 @@
 
 ## Providers
 
-`AddHeroStorage(config)` reads `Storage:Provider` **eagerly at registration**: `"s3"` → `S3StorageService` (supports MinIO via `ServiceUrl` + `ForcePathStyle`), else `LocalStorageService`. When quotas are enabled the service is wrapped in `QuotaMeteredStorageService` (debits `StorageBytes`).
+`AddHeroStorage(config)` reads `Storage:Provider` **eagerly at registration**: `"s3"` → `S3StorageService` (any S3-compatible service via `ServiceUrl` + `ForcePathStyle`: rustfs in a stamp and the AppHost, MinIO in the tests), else `LocalStorageService`. Presigned URLs are signed by a second client, keyed `S3StorageService.PresignClientKey`, for `PublicServiceUrl` (`S3_PUBLIC_ENDPOINT`): the browser reaches the storage through the front end's `/storage` proxy, on the page's hostname. When quotas are enabled the service is wrapped in `QuotaMeteredStorageService` (debits `StorageBytes`).
 
 ## Presigned upload flow (preferred for user uploads)
 

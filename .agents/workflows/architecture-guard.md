@@ -22,7 +22,7 @@ Covers: cross-module references only via `.Contracts`, tenant-isolation rules on
 
 ### 3. Build clean
 ```bash
-dotnet build src/FSH.Starter.slnx 2>&1 | grep -E "warning|error"   # expect none (TreatWarningsAsErrors)
+dotnet build src/App.slnx 2>&1 | grep -E "warning|error"   # expect none (TreatWarningsAsErrors)
 ```
 
 ### 4. Module boundary heuristic
@@ -37,9 +37,9 @@ grep -rn "MediatR\|IRequest<\|IRequestHandler<" src/Modules --include="*.cs"   #
 ```
 
 ### 6. New-module registration (the four-place footgun)
-If a new `*Module` was added, confirm it appears in **all four**: Mediator `o.Assemblies` (Contracts marker **and** module type) + `moduleAssemblies` array, in **both** `FSH.Starter.Api/Program.cs` and `FSH.Starter.DbMigrator/Program.cs`.
+If a new `*Module` was added, confirm it appears in **all four**: Mediator `o.Assemblies` (Contracts marker **and** module type) + `moduleAssemblies` array, in **both** `App.Api/Program.cs` and `App.DbMigrator/Program.cs`.
 ```bash
-grep -rn "{New}Module\|{New}ContractsMarker" src/Host/FSH.Starter.Api/Program.cs src/Host/FSH.Starter.DbMigrator/Program.cs
+grep -rn "{New}Module\|{New}ContractsMarker" src/Host/App.Api/Program.cs src/Host/App.DbMigrator/Program.cs
 ```
 
 ### 7. Permission-gate integrity

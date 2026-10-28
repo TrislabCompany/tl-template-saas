@@ -7,7 +7,7 @@ This is a **standalone Vite app** — not part of a pnpm workspace — so it can
 ## Prerequisites
 
 - Node.js 20+
-- The API running locally (`dotnet run --project src/Host/FSH.Starter.Api`, defaults to `http://localhost:5030`)
+- The API running locally (`dotnet run --project src/Host/App.Api`, defaults to `http://localhost:5030`)
 
 ## Install & run
 
@@ -15,11 +15,11 @@ Two options — pick whichever matches how you want to develop.
 
 ### Option A — run everything through Aspire (recommended)
 
-The AppHost launches Postgres, Redis, MinIO, the API, **and** this Vite app together, with `VITE_API_BASE_URL` wired via service discovery.
+The AppHost launches Postgres, Valkey, rustfs storage, the API, **and** this Vite app together, with `API_UPSTREAM` wired via service discovery.
 
 ```bash
 npm install --prefix clients/admin   # one-time
-dotnet run --project src/Host/FSH.Starter.AppHost
+dotnet run --project src/Host/App.AppHost
 ```
 
 Aspire dashboard will expose `fsh-admin` on <http://localhost:5173>.
@@ -34,7 +34,7 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-The dev server proxies `/api`, `/openapi`, and `/scalar` to `VITE_API_BASE_URL` (default `http://localhost:5030`), so browser requests stay same-origin.
+The dev server proxies `/api`, `/openapi`, and `/scalar` to `API_UPSTREAM` (default `http://localhost:5030`), and `/storage` to `STORAGE_UPSTREAM` (default `http://localhost:9000`), so browser requests stay same-origin.
 
 ## Scripts
 
@@ -47,14 +47,20 @@ The dev server proxies `/api`, `/openapi`, and `/scalar` to `VITE_API_BASE_URL` 
 
 ## Configuration
 
-Environment variables are read via `import.meta.env` and surfaced through `src/env.ts`:
+The dev server proxies `/api` to `API_UPSTREAM` and `/storage` to `STORAGE_UPSTREAM`, as nginx does in the image.
 
-| Variable                  | Default                  | Purpose                                       |
-|---------------------------|--------------------------|-----------------------------------------------|
-| `VITE_API_BASE_URL`       | `http://localhost:5030`  | API origin used by the dev proxy              |
-| `VITE_DEFAULT_TENANT`     | `root`                   | Default tenant header for unauthenticated calls |
+At runtime the app reads `/config.json`, loaded by `src/env.ts` before React mounts. In the image,
+`docker/docker-entrypoint.sh` writes it at container start from `docker/config.json.template`, with
+the `PLATFORM_*` and `PUBLIC_*` settings only; in dev, Vite serves `public/config.json`. Never give a
+secret a `PUBLIC_` name. The settings:
 
-Create `.env.local` to override locally.
+| Setting | Purpose |
+|---|---|
+| `PUBLIC_DEFAULT_TENANT` | Default tenant for unauthenticated calls (`root` when unset) |
+| `PUBLIC_DASHBOARD_URL` | The dashboard's origin, for the impersonation hand-off |
+| `PUBLIC_INACTIVITY_IDLE_MS`, `PUBLIC_INACTIVITY_WARNING_MS` | Idle sign-out timing |
+
+To add one, add it to `docker/config.json.template` and `public/config.json`, and read it in `src/env.ts`.
 
 ## Structure
 
@@ -98,4 +104,7 @@ src/
 
 ## Production build
 
-`npm run build` emits a static bundle to `dist/`. Host it behind any static web server (nginx, Caddy, Azure Static Web Apps, CloudFront, …). Configure the reverse proxy to forward `/api/*` to the backend and serve `index.html` as the SPA fallback for unmatched routes.
+The `Dockerfile` builds the image the platform deploys: `npm run build` emits `dist/`, served by
+unprivileged nginx on port 8080 with `docker/nginx.conf`, which proxies `/api` to the API and
+`/storage` to the storage service on the page's own origin. See `docs/architecture.md` at the
+repository root.

@@ -4,22 +4,17 @@ namespace FSH.Framework.Jobs;
 
 public sealed class HangfireOptions
 {
-    /// <summary>
-    /// Username required to access the Hangfire dashboard. MUST be set via configuration
-    /// in any non-dev environment — there is no safe default.
-    /// </summary>
-    [Required]
+    /// <summary>Username for the Hangfire dashboard.</summary>
     [MinLength(3)]
-    public string UserName { get; set; } = default!;
+    public string UserName { get; set; } = "admin";
 
     /// <summary>
-    /// Password required to access the Hangfire dashboard. MUST be set via configuration
-    /// (user secrets locally, env vars or Key Vault in prod). Short or empty passwords are
-    /// rejected at startup by <c>ValidateDataAnnotations().ValidateOnStart()</c>.
+    /// Password for the Hangfire dashboard, from HANGFIRE_PASSWORD in a stamp. When it is
+    /// empty the dashboard isn't mapped; the jobs still run. A short password is rejected
+    /// at startup by <c>ValidateDataAnnotations().ValidateOnStart()</c>.
     /// </summary>
-    [Required]
     [MinLength(12)]
-    public string Password { get; set; } = default!;
+    public string? Password { get; set; }
 
     public string Route { get; set; } = "/jobs";
 }

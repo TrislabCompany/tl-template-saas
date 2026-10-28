@@ -1,7 +1,7 @@
 {
-  "apiBase": "",
-  "defaultTenant": "root",
-  "demoMode": true,
-  "inactivityIdleMs": 1200000,
-  "inactivityWarningMs": 60000
+  "PLATFORM_ENVIRONMENT": "local",
+  "PUBLIC_DEFAULT_TENANT": "root",
+  "PUBLIC_DEMO_MODE": "true",
+  "PUBLIC_INACTIVITY_IDLE_MS": "1200000",
+  "PUBLIC_INACTIVITY_WARNING_MS": "60000"
 }

@@ -37,37 +37,16 @@ public static class Extensions
             services.Configure<S3StorageOptions>(configuration.GetSection("Storage:S3"));
 
             services.AddSingleton<IAmazonS3>(sp =>
+                CreateS3Client(sp.GetRequiredService<IOptions<S3StorageOptions>>().Value, serviceUrlOverride: null));
+
+            // Signs presigned URLs. Signing needs no network call, so this client only has to know
+            // the host the browser uses, which differs from ServiceUrl behind the /storage proxy.
+            services.AddKeyedSingleton<IAmazonS3>(S3StorageService.PresignClientKey, (sp, _) =>
             {
                 var options = sp.GetRequiredService<IOptions<S3StorageOptions>>().Value;
-
-                if (string.IsNullOrWhiteSpace(options.Bucket))
-                {
-                    throw new InvalidOperationException("Storage:S3:Bucket is required when using S3 storage.");
-                }
-
-                var config = new AmazonS3Config();
-
-                if (!string.IsNullOrWhiteSpace(options.ServiceUrl))
-                {
-                    // S3-compatible endpoint (e.g. MinIO). Path-style addressing is typically required
-                    // because these services don't route virtual-hosted-style bucket subdomains.
-                    config.ServiceURL = options.ServiceUrl;
-                    config.ForcePathStyle = options.ForcePathStyle;
-
-                    // The SDK still wants an auth region for SigV4 even when hitting a custom endpoint.
-                    config.AuthenticationRegion = string.IsNullOrWhiteSpace(options.Region) ? "us-east-1" : options.Region;
-                }
-                else if (!string.IsNullOrWhiteSpace(options.Region))
-                {
-                    config.RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
-                }
-
-                var hasExplicitCredentials = !string.IsNullOrWhiteSpace(options.AccessKey)
-                    && !string.IsNullOrWhiteSpace(options.SecretKey);
-
-                return hasExplicitCredentials
-                    ? new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), config)
-                    : new AmazonS3Client(config);
+                return string.IsNullOrWhiteSpace(options.PublicServiceUrl)
+                    ? sp.GetRequiredService<IAmazonS3>()
+                    : CreateS3Client(options, options.PublicServiceUrl);
             });
 
             services.AddTransient<S3StorageService>();
@@ -80,6 +59,39 @@ public static class Extensions
         }
 
         return services;
+    }
+
+    private static AmazonS3Client CreateS3Client(S3StorageOptions options, string? serviceUrlOverride)
+    {
+        if (string.IsNullOrWhiteSpace(options.Bucket))
+        {
+            throw new InvalidOperationException("Storage:S3:Bucket is required when using S3 storage.");
+        }
+
+        var config = new AmazonS3Config();
+        var serviceUrl = serviceUrlOverride ?? options.ServiceUrl;
+
+        if (!string.IsNullOrWhiteSpace(serviceUrl))
+        {
+            // S3-compatible endpoint (e.g. MinIO). Path-style addressing is typically required
+            // because these services don't route virtual-hosted-style bucket subdomains.
+            config.ServiceURL = serviceUrl;
+            config.ForcePathStyle = options.ForcePathStyle;
+
+            // The SDK still wants an auth region for SigV4 even when hitting a custom endpoint.
+            config.AuthenticationRegion = string.IsNullOrWhiteSpace(options.Region) ? "us-east-1" : options.Region;
+        }
+        else if (!string.IsNullOrWhiteSpace(options.Region))
+        {
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
+        }
+
+        var hasExplicitCredentials = !string.IsNullOrWhiteSpace(options.AccessKey)
+            && !string.IsNullOrWhiteSpace(options.SecretKey);
+
+        return hasExplicitCredentials
+            ? new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), config)
+            : new AmazonS3Client(config);
     }
 
     private static void RegisterStorageService<TInner>(

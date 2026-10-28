@@ -12,7 +12,7 @@ public class HostArchitectureTests
         // Assemblies / namespaces that represent host applications.
         string[] hostNamespaces =
         {
-            "FSH.Starter.Api"
+            "App.Api"
         };
 
         var result = Types
@@ -51,7 +51,7 @@ public class HostArchitectureTests
         var hostResult = Types
             .InCurrentDomain()
             .That()
-            .ResideInNamespace("FSH.Starter")
+            .ResideInNamespace("App.Api")
             .Should()
             .NotHaveDependencyOnAny(forbiddenNamespaces)
             .GetResult();

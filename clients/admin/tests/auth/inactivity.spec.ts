@@ -14,10 +14,9 @@ test.beforeEach(async ({ page }) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        apiBase: "",
-        defaultTenant: "root",
-        inactivityIdleMs: IDLE_MS,
-        inactivityWarningMs: WARNING_MS,
+        PUBLIC_DEFAULT_TENANT: "root",
+        PUBLIC_INACTIVITY_IDLE_MS: String(IDLE_MS),
+        PUBLIC_INACTIVITY_WARNING_MS: String(WARNING_MS),
       }),
     }),
   );

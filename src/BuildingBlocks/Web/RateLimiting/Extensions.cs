@@ -136,8 +136,10 @@ public static class Extensions
             });
 
     private static bool IsHealthPath(PathString path) =>
+        path.StartsWithSegments("/api/health", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/readyz", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/ready", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/live", StringComparison.OrdinalIgnoreCase);
 

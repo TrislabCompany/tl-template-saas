@@ -57,8 +57,8 @@ public class BuildingBlocksIndependenceTests
                 .InAssembly(assembly)
                 .ShouldNot()
                 .HaveDependencyOnAny(
-                    "FSH.Starter",
-                    "FSH.Starter.Api")
+                    "App.DbMigrator",
+                    "App.Api")
                 .GetResult();
 
             var failingTypes = result.FailingTypeNames ?? [];
@@ -105,7 +105,7 @@ public class BuildingBlocksIndependenceTests
 
                 // Check if it references a Host project
                 if (referencedName.Contains("AppHost", StringComparison.OrdinalIgnoreCase) ||
-                    referencedName.StartsWith("FSH.Starter.Api", StringComparison.OrdinalIgnoreCase))
+                    referencedName.StartsWith("App.Api", StringComparison.OrdinalIgnoreCase))
                 {
                     violations.Add($"{projectName} -> {referencedName}");
                 }

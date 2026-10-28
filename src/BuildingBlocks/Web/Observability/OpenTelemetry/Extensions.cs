@@ -18,7 +18,7 @@ namespace FSH.Framework.Web.Observability.OpenTelemetry;
 
 public static class Extensions
 {
-    private const string HealthEndpointPath = "/health";
+    private const string HealthEndpointPath = "/api/health";
     private const string AlivenessEndpointPath = "/alive";
     public static IHostApplicationBuilder AddHeroOpenTelemetry(this IHostApplicationBuilder builder)
     {
@@ -39,7 +39,7 @@ public static class Extensions
 
         // Honor the orchestrator's identity: Aspire (and any OTLP collector) injects OTEL_SERVICE_NAME as the
         // resource name it knows the process by (e.g. "fsh-starter-api"). Overriding it with the entry-assembly
-        // name ("FSH.Starter.Api") de-correlates our telemetry from that resource, so the dashboard lists the
+        // name ("App.Api") de-correlates our telemetry from that resource, so the dashboard lists the
         // process twice. Adopt the injected name when present; fall back to ApplicationName when running standalone.
         var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
             ?? builder.Environment.ApplicationName;
@@ -186,6 +186,8 @@ public static class Extensions
 
     private static bool IsHealthCheck(PathString path) =>
         path.StartsWithSegments(HealthEndpointPath) ||
+        path.StartsWithSegments("/healthz") ||
+        path.StartsWithSegments("/readyz") ||
         path.StartsWithSegments(AlivenessEndpointPath);
 
     private static void EnrichWithHttpRequest(Activity activity, HttpRequest request)

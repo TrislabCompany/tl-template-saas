@@ -17,7 +17,7 @@ public sealed class HealthCheckTests
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.GetAsync("/health/live");
+        var response = await client.GetAsync("/api/health/live");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -27,7 +27,7 @@ public sealed class HealthCheckTests
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.GetAsync("/health/ready");
+        var response = await client.GetAsync("/api/health/ready");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }

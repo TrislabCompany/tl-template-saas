@@ -12,7 +12,7 @@ namespace Integration.Tests.Tests.Health;
 /// Direct unit tests for <see cref="TenantMigrationsHealthCheck"/> — the production-readiness
 /// gate added when API-side auto-migration was removed. Asserts that the check returns
 /// <c>Unhealthy</c> against an unmigrated database and <c>Healthy</c> after the schema is
-/// brought to head (the exact transition <c>FSH.Starter.DbMigrator</c> performs in production).
+/// brought to head (the exact transition <c>App.DbMigrator</c> performs in production).
 /// Uses a real Postgres testcontainer + an in-memory <see cref="IMultiTenantStore{TTenantInfo}"/>
 /// to keep the test independent of the shared <c>FshWebApplicationFactory</c> — avoiding
 /// the global Hangfire state that would otherwise leak across test classes.
@@ -42,11 +42,11 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         };
 
         // ── Before migrations ────────────────────────────────────────────
-        // Every migration is pending → check must be Unhealthy so /health/ready returns 503.
+        // Every migration is pending → check must be Unhealthy so /api/health/ready returns 503.
         var beforeResult = await check.CheckHealthAsync(context, CancellationToken.None);
         beforeResult.Status.ShouldBe(HealthStatus.Unhealthy);
         beforeResult.Description.ShouldNotBeNull();
-        beforeResult.Description!.ShouldContain("FSH.Starter.DbMigrator");
+        beforeResult.Description!.ShouldContain("App.DbMigrator");
 
         // ── Apply migrations (what DbMigrator does in production) ────────
         using (var scope = provider.CreateScope())
@@ -91,7 +91,7 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         services.AddSingleton<IMultiTenantStore<AppTenantInfo>>(new SingleTenantStore());
         services.AddScoped<IMultiTenantContextSetter, FakeMultiTenantContextSetter>();
         services.AddDbContext<TenantDbContext>(opts =>
-            opts.UseNpgsql(connectionString, b => b.MigrationsAssembly("FSH.Starter.Migrations.PostgreSQL")));
+            opts.UseNpgsql(connectionString, b => b.MigrationsAssembly("App.Migrations.PostgreSQL")));
         return services.BuildServiceProvider();
     }
 

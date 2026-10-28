@@ -30,6 +30,10 @@ public static class Extensions
                     sp.GetRequiredService<IOptions<MailOptions>>(),
                     sp.GetRequiredService<ISendGridClient>());
             }
+            if (string.IsNullOrWhiteSpace(options.Smtp?.Password))
+            {
+                return new DisabledMailService(sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<DisabledMailService>>());
+            }
             return new SmtpMailService(sp.GetRequiredService<IOptions<MailOptions>>(), sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SmtpMailService>>());
         });
         return services;

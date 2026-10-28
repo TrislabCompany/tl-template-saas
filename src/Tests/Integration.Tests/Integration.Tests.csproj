@@ -37,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Host\FSH.Starter.Api\FSH.Starter.Api.csproj" />
+        <ProjectReference Include="..\..\Host\App.Api\App.Api.csproj" />
     </ItemGroup>
 
 </Project>

@@ -70,7 +70,7 @@ public sealed class PermissionEnforcementTests
     {
         using var client = _factory.CreateClient();
 
-        var liveResponse = await client.GetAsync("/health/live");
+        var liveResponse = await client.GetAsync("/api/health/live");
         var rootResponse = await client.GetAsync("/");
 
         liveResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
