@@ -1,0 +1,7 @@
+# Accepted Trivy findings. Each ID goes on its own line, with a comment line
+# directly above it that gives the reason and an expiry date, for example:
+#
+# # reason: the vulnerable function is never called by the app; expires: 2027-03-31
+# CVE-2026-12345
+#
+# ci / ci fails when an ID has no such line, or its date has passed.

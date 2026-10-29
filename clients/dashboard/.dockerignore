@@ -1,0 +1,16 @@
+# The build context of this image is the client's folder, so this file applies
+# to it, not the one at the repository root. Keeps the context small and free
+# of secrets.
+node_modules
+dist
+tests
+test-results
+playwright-report
+playwright.config.ts
+public/config.json
+*.log
+.env
+.env.*
+.DS_Store
+Dockerfile
+.dockerignore

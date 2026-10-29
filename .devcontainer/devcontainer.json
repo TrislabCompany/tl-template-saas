@@ -1,0 +1,18 @@
+{
+    "name": "tl-template-saas",
+    "image": "mcr.microsoft.com/dotnet/sdk:10.0.403-noble",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    "postCreateCommand": "dotnet restore src/App.slnx && dotnet tool restore && npm --prefix clients/admin ci && npm --prefix clients/dashboard ci",
+    "forwardPorts": [5030, 7030, 5173, 5174, 15888],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.csharp"
+            ]
+        }
+    }
+}
