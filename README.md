@@ -43,7 +43,7 @@ What works on the first deploy, with no change:
 
 | Technology | Version |
 | --- | --- |
-| fullstackhero .NET starter kit | Release `10.0.0`, MIT licence ([`LICENSE`](LICENSE), which stays in every repository) |
+| fullstackhero .NET starter kit | Release `10.0.0`, MIT licence ([`LICENSE`](LICENSE), which stays in every repository); releases reviewed up to `10.0.0` ([upstream.md](docs/upstream.md)) |
 | .NET | SDK 10.0.403 (`global.json`), runtime 10.0.14 (`aspnet:10.0.14-noble-chiseled`) |
 | ASP.NET Core | 10.0.14 |
 | EF Core | 10.0.14, with Npgsql's provider 10.0.3 |
@@ -96,3 +96,4 @@ Every base image is pinned by digest. Renovate will keep the versions current; u
 - [Configuration](docs/configuration.md): the settings and secrets, `PlatformConfiguration.cs`, `/config.json`, the `/api` and `/storage` upstreams, and how to add a setting or a secret.
 - [Deployment](docs/deployment.md): Environments, deploy, release and promote, migrations, `platform.yaml` and the caps, choosing a backing service, and how to ask for more.
 - [Modules](docs/modules.md): each module, how to add or delete one, and what `Architecture.Tests` enforces.
+- [Upstream](docs/upstream.md): how the platform team reviews fullstackhero's releases, and what it took from each.
