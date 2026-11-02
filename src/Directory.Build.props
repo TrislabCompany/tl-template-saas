@@ -1,0 +1,41 @@
+<Project>
+	<PropertyGroup>
+		<!-- Target framework -->
+		<TargetFramework>net10.0</TargetFramework>
+
+		<!-- Enable latest C# features and diagnostics -->
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Code quality & analysis. Warnings are errors, locally and in ci / ci alike. -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+
+		<!-- Docs -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591;MSG0005;CA1054;CA1056</NoWarn>
+		<!-- Suppress warning about missing XML docs -->
+
+		<!-- Prevent MSBuild from excluding common folders (optional) -->
+		<NoDefaultExcludes>true</NoDefaultExcludes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Sonar Analyzer for deep static analysis -->
+		<PackageReference Include="SonarAnalyzer.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<!-- The product's version, shown by GET /api/health/info. Nothing is packed:
+		     modules and building blocks are used as source, through project references. -->
+		<Version>0.1.0</Version>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+</Project>

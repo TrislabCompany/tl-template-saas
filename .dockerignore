@@ -1,0 +1,27 @@
+# The api and migrator images build from the repository root. Keeps the build
+# context small and free of secrets: no tests, no front ends, no build output,
+# no local files. admin and dashboard build from their own folders, each with
+# its own .dockerignore.
+.git
+.github
+.vscode
+.idea
+.vs
+.agents
+.devcontainer
+docs
+clients
+src/Tests
+src/Host/App.AppHost
+**/bin
+**/obj
+**/TestResults
+**/node_modules
+*.log
+.env
+.env.*
+.DS_Store
+**/Dockerfile
+.dockerignore
+docker-compose.yml
+*.md

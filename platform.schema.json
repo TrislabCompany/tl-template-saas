@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "platform.yaml",
+  "description": "The images a repository builds and the sizing of its apps (13-app-templates.md section 5)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["images", "apps"],
+  "properties": {
+    "images": {
+      "description": "Image name to build. The name becomes ghcr.io/<org>/<repository>/<name>",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z0-9-]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dockerfile"],
+        "properties": {
+          "dockerfile": { "description": "The Dockerfile, a path in the repository", "type": "string", "minLength": 1 },
+          "context": { "description": "The build context, a folder in the repository. Default: the repository root", "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "apps": {
+      "description": "App name, as apps[].name in the stamp's stamp.yaml, to app",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/app" }
+    },
+    "environments": {
+      "description": "Overrides per Environment, named as in the repository",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "$ref": "#/definitions/override" }
+      }
+    }
+  },
+  "definitions": {
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image", "profile", "cpu", "memory", "min_replicas", "max_replicas"],
+      "properties": {
+        "image": { "description": "The app's container, a name from images", "type": "string" },
+        "init_image": { "description": "An init container that runs to completion before the app's container starts, a name from images", "type": "string" },
+        "profile": { "$ref": "#/definitions/profile" },
+        "cpu": { "$ref": "#/definitions/cpu" },
+        "memory": { "$ref": "#/definitions/memory" },
+        "min_replicas": { "$ref": "#/definitions/min_replicas" },
+        "max_replicas": { "$ref": "#/definitions/max_replicas" }
+      }
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "profile": { "$ref": "#/definitions/profile" },
+        "cpu": { "$ref": "#/definitions/cpu" },
+        "memory": { "$ref": "#/definitions/memory" },
+        "min_replicas": { "$ref": "#/definitions/min_replicas" },
+        "max_replicas": { "$ref": "#/definitions/max_replicas" }
+      }
+    },
+    "profile": { "description": "Consumption or Dedicated-<type>", "type": "string", "pattern": "^(Consumption|Dedicated-[A-Za-z0-9]+)$" },
+    "cpu": { "description": "vCPU per replica, in steps of 0.25", "type": "number", "minimum": 0.25, "multipleOf": 0.25 },
+    "memory": { "description": "Memory per replica, <n>Gi", "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?Gi$" },
+    "min_replicas": { "type": "integer", "minimum": 0, "maximum": 300 },
+    "max_replicas": { "type": "integer", "minimum": 1, "maximum": 300 }
+  }
+}

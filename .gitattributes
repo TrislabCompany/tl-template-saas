@@ -1,0 +1,5 @@
+# Line endings stay LF in every checkout, also on Windows, so the shell scripts
+# and the nginx configuration work in the images.
+* text=auto eol=lf
+*.png binary
+*.ico binary
