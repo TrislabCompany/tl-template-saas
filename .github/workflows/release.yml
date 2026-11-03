@@ -1,0 +1,22 @@
+name: release
+
+# Releases a tag vX.Y.Z or vX.Y.Z-rc.<n> on main: tags the images that commit
+# built, creates the GitHub Release with their SBOMs, and deploys them to every
+# release tier Environment. Builds nothing. All steps live in the reusable
+# workflow in tl-platform, pinned by tag. Change nothing here.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: read
+      actions: read
+    uses: TrislabCompany/tl-platform/.github/workflows/app-release.yml@app-workflows/v0.2.0
