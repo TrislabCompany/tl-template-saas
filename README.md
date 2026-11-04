@@ -83,7 +83,7 @@ Every base image is pinned by digest. Renovate will keep the versions current; u
 
 1. **Run it locally:** `dotnet run --project src/Host/App.AppHost`, after `npm install` in both clients; or, without the .NET SDK, `cp .env.example .env` and `docker compose up --build`, then open <http://localhost:8082>. Before you push, run `dotnet test src/App.slnx`. [getting-started.md](docs/getting-started.md) has the accounts to sign in with.
 2. **Open your first PR:** change something in `src/` or `clients/`, push a branch and open a PR. `ci / ci` must pass and a code owner must approve.
-3. **Deploy, release and promote:** a merge to `main` deploys to `dev`, a tag `vX.Y.Z` releases to the `release` tier, and a promotion moves a release to production. `deploy.yml` and `release.yml` do the first two, and the platform adds `promote.yml` before the first production Environment; [deployment.md](docs/deployment.md) explains how they work.
+3. **Deploy, release and promote:** a merge to `main` deploys to `dev`, a tag `vX.Y.Z` releases to the `release` tier, and a promotion moves a release to production. `deploy.yml` and `release.yml` do the first two, and the platform adds `promote.yml` before the first production Environment; [deployment.md](docs/deployment.md) explains how they work, and [its section 8](docs/deployment.md#8-steps-for-developers) lists your steps. The `release` skill runs them.
 4. **Add a module:** a runtime project and a `.Contracts` project in `src/Modules/`, registered in both `Program.cs` files ([modules.md](docs/modules.md#2-add-a-module)). Delete the sample modules you don't need.
 5. **Add a migration:** change the module's model, then `dotnet ef migrations add <Name>` into its folder of `App.Migrations.PostgreSQL`. Keep it backward compatible ([deployment.md](docs/deployment.md#3-migrations)).
 6. **Add a setting or a secret:** add it to the stamp, then map it in `src/Host/App.Api/Platform/PlatformConfiguration.cs` ([configuration.md](docs/configuration.md#5-add-a-setting-or-a-secret)).
@@ -94,6 +94,6 @@ Every base image is pinned by digest. Renovate will keep the versions current; u
 - [Getting started](docs/getting-started.md): run the product with the AppHost or Docker Compose, the services, the accounts, and the tests.
 - [Architecture](docs/architecture.md): the modular monolith, the images, the apps, the migrator, the backing services and the request path.
 - [Configuration](docs/configuration.md): the settings and secrets, `PlatformConfiguration.cs`, `/config.json`, the `/api` and `/storage` upstreams, and how to add a setting or a secret.
-- [Deployment](docs/deployment.md): Environments, deploy, release and promote, migrations, `platform.yaml` and the caps, choosing a backing service, and how to ask for more.
+- [Deployment](docs/deployment.md): Environments, deploy, release and promote, migrations, `platform.yaml` and the caps, choosing a backing service, and how to ask for more. Section 8: the steps for developers.
 - [Modules](docs/modules.md): each module, how to add or delete one, and what `Architecture.Tests` enforces.
 - [Upstream](docs/upstream.md): how the platform team syncs each fullstackhero commit, and the status of every commit since `10.0.0`.
