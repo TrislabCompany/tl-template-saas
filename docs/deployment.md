@@ -116,3 +116,62 @@ Raising a cap, adding an Environment, a setting, a secret or a custom domain is 
 | A public hostname for the API, for mobile clients or webhooks | `ingress: external` on `api`; the API then handles CORS itself |
 
 Your team may open these PRs: the stamp's folder lists your team as a code owner next to the platform team. The infrastructure pipeline plans the change, the platform team approves the apply, and the next deploy can use it. For an Environment or a custom domain, ask the platform team.
+
+## 8. Steps for developers
+
+What you do yourself, in order. Section 2 says what each workflow does. The `release` skill (`.agents/skills/release/SKILL.md`) runs the same steps with an agent, and asks before every tag, promotion and rollback.
+
+### 8.1 Ship a change to `dev`
+
+1. Branch from `main`, commit, and open a PR to `main`.
+2. Wait for the check `ci / ci`: `gh pr checks <pr> --watch`.
+3. A code owner approves, and you squash-merge.
+4. `deploy.yml` runs on the merge commit. Watch it: `gh run list --workflow deploy.yml --branch main --limit 1`, then `gh run watch <run id>`.
+5. Check the change in `dev`. The address of each Environment comes from the platform team with the Environment.
+
+### 8.2 Release to `test` or `staging`
+
+1. Pick the commit on `main` to release. Its `deploy.yml` run must have passed: `release.yml` builds nothing and refuses a commit that is not on `main` or has no images.
+2. Choose the version. Raise `X` for a change that breaks something for users, `Y` for a new feature, `Z` for a fix. A release candidate is `vX.Y.Z-rc.<n>`: it reaches the `release` tier but can never be promoted to `prod`.
+3. Tag the commit and push the tag:
+
+   ```bash
+   git tag -a v1.2.0 <commit> -m "v1.2.0"
+   git push origin v1.2.0
+   ```
+
+4. Watch `release.yml` (`gh run list --workflow release.yml --limit 1`, then `gh run watch <run id>`). It creates the GitHub Release and deploys to every `release` tier Environment.
+5. Check the release there. Whoever accepts the content does it in this Environment.
+
+A tag is never moved or deleted once it is pushed. A wrong release is replaced by the next version.
+
+### 8.3 Promote to `prod`
+
+Only when the repository has a `prod` Environment and `promote.yml`, which the platform team adds before the first production Environment.
+
+1. The version must run, healthy, in a `release` tier Environment (`test` or `staging`). Check: `gh api "repos/{owner}/{repo}/deployments?environment=staging&per_page=1" --jq '.[0].ref'`.
+2. Run the promotion: `gh workflow run promote.yml -f version=v1.2.0 -f environment=prod`.
+3. A reviewer of the `prod` Environment approves the waiting job on GitHub.
+4. Watch the run and check production.
+
+### 8.4 Roll back
+
+- **`prod`:** promote the previous version, the same way as in 8.3. No image is rebuilt. A rollback never reverses a migration, so it is safe only because every migration is backward compatible (section 3).
+- **`dev` and the `release` tier:** fix forward. Revert the change on `main` through a PR, then tag a new version if the `release` tier needs it.
+
+### 8.5 When a run fails
+
+- **`ci / ci` fails:** the PR can't merge. Read the failed steps with `gh run view <run id> --log-failed`. A Trivy finding is fixed or accepted in `.trivyignore` (section 4); a value above a cap is lowered in `platform.yaml` or the cap is raised (sections 5 and 7).
+- **`deploy.yml`, `release.yml` or `promote.yml` fails:** the Environment stays on the version it had. Read the log, fix, and merge, tag or promote again.
+- **The new revision never becomes ready:** its `/readyz` did not answer. Run the image locally and check `/readyz` before you try again.
+- **`api` never becomes ready after a migration:** the previous revision keeps serving on the migrated database. Fix the migration in a new PR; never edit one that already ran (section 3).
+- **`promote.yml` refuses the version:** it does not run healthy in a `release` tier Environment, or it is a release candidate.
+- **Sign-in, a missing Environment or a cap:** ask the platform team.
+
+### 8.6 What runs where
+
+Every deploy is a GitHub deployment of its Environment, so the repository's **Deployments** page shows which version runs where. From the command line:
+
+```bash
+gh api "repos/{owner}/{repo}/deployments?per_page=20" --jq '.[] | [.environment, .ref, .created_at] | @tsv'
+```
